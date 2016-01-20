@@ -1,0 +1,109 @@
+hybridModels 0.2.6
+=================
+
+* using PSOCK cluster type for all OSs.
+
+
+hybridModels 0.2.5
+=================
+
+* Considering Mac OS cluster type for parallel functions.
+
+
+hybridModels 0.2.4
+=================
+
+* faster examples (from SIR to SIS and smaller pops).
+
+* back to doParallel package.
+
+* foreach package from Depends to Imports.
+
+* layout changes data set help.
+
+* removing unnecessary function.
+
+
+hybridModels 0.2.3
+=================
+
+* stats package from Depends to Imports.
+
+  
+hybridModels 0.2.2
+=================
+
+* It uses the superseded package: 'doSNOW' since it passes the cran check and 
+  the doParallel did not.
+  
+
+hybridModels 0.2.1
+=================
+
+* Changing examples: examples are now using custom equations.
+
+* plot.HD function: it is possible to customize through ggplot2.
+
+hybridModels 0.2.0
+=================
+
+* hybridModel function: now it includes new class (customMigr).
+
+* buildModelClass function: now it includes it includes new class (generic function).
+
+* buildModelClass.customMigr: method to create an object of the class customMigr.
+
+* simHB.customMigr function: method to run custom models (migration link type).
+
+* plot.HD function: new plot opstions.
+
+* networkSample data: new data set
+
+* nodesCensus data: new data set
+
+
+hybridModels 0.1.0
+=================
+
+* hybridModel function: now it includes link.type parameter.
+
+* buildModelClass function: now it includes link.type parameter (generic function).
+
+* buildModelClass.siWoDemogrMigr: replaces buildModelClass.siWoDemogrMigr method.
+
+* buildModelClass.siWoDemogrInfl: method to create an object of the class siWoDemogrInfl.
+
+* simHB function: generic that calls the method based on model's class.
+
+* simHB.siWoDemogrMigr function: method to run the 'SI without demographics' model
+                                 of migration link type.
+
+* simHB.siWoDemogrInfl function: method to run the 'SI without demographics' model
+                                 of influence link type.
+
+* plot.HD function: replaces plot.siWoDemogrmethod method.
+
+* networkSample data: replaces network.sample
+
+* nodesCensus data: replaces nodes.Info
+
+hybridModels 0.0.1
+=================
+
+* hybridModel function: main function to simulate the spread of diseases using 
+                        an model.
+
+* buildModelClass function: generic that calls the method based on model's class.
+
+* buildModelClass.siWoDemogr: method to create an object of the class siWoDemogr.
+
+* simHB function: generic that calls the method based on model's class.
+
+* simHB.siWoDemogr function: method to run the 'SI without demographics' model.
+
+* plot.siWoDemogr function: method to plot the 'SI without demographics' results.
+
+* network.sample data: a sample of a dynamic network of traded animals between
+                       farms.
+
+* network.Info data: farms' censitary information.
