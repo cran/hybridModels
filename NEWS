@@ -1,3 +1,21 @@
+hybridModels 0.2.9
+=================
+
+* new column names of example data set (new documentation).
+
+* adjusting all examples for the new column names.
+
+
+hybridModels 0.2.8
+=================
+
+* implemantation of findContactChain function.
+
+hybridModels 0.2.7
+=================
+
+* example data have one column name changed.
+
 hybridModels 0.2.6
 =================
 

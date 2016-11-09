@@ -70,10 +70,10 @@ Object containing a \code{\link{data.frame}} (results) with the number
 # Parameters and initial conditions for an SIS model
 # loading the data set 
 data(networkSample) # help("networkSample"), for more info
-networkSample <- networkSample[which(networkSample$Dia < "2012-03-20"),]
+networkSample <- networkSample[which(networkSample$Day < "2012-03-20"),]
 
-var.names <- list(from = 'originID', to = 'destinyID', Time = 'Dia',
-                  arc = 'num.animais')
+var.names <- list(from = 'originID', to = 'destinationID', Time = 'Day',
+                  arc = 'num.animals')
                   
 prop.func <- c('beta * S * I / (S + I)', 'gamma * I')
 state.var <- c('S', 'I')
@@ -84,9 +84,9 @@ state.change.matrix <- matrix(c(-1,  1,  # S
 model.parms <- c(beta = 0.1, gamma = 0.01)
 
 init.cond <- rep(100, length(unique(c(networkSample$originID,
-                                      networkSample$destinyID))))
+                                      networkSample$destinationID))))
 names(init.cond) <- paste('S', unique(c(networkSample$originID,
-                                        networkSample$destinyID)), sep = '')
+                                        networkSample$destinationID)), sep = '')
 init.cond <- c(init.cond, c(I36811 = 10, I36812 = 10)) # adding infection
                   
 # running simulations, check num of cores available (num.cores)
