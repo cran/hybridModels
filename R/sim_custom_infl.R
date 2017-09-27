@@ -1,9 +1,9 @@
 #' @import foreach
 #' 
-simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
+simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
   
   if (fill.time == F){
-    parallelCustomMigr <- function(){
+    parallelCustomInfl <- function(){
       
       # making it readable
       sim.result <- x$results
@@ -13,6 +13,7 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
       to <- x$ssaObjet$var.names$to
       Time <- x$ssaObjet$var.names$Time
       state.var <- x$ssaObjet$state.var
+      infl.var <- x$ssaObjet$infl.var
       
       # starting
       sim.result$sim <- sims
@@ -23,10 +24,10 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
         # emigrants
         emigrants <- 
           stats::aggregate(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
-                            c(from,arc)][, arc],
-                    by = list(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
-                                      c(from,arc)][, from]),
-                    FUN = sum)
+                                   c(from,arc)][, arc],
+                           by = list(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
+                                             c(from,arc)][, from]),
+                           FUN = sum)
         colnames(emigrants) <- c(from, arc)
         
         ### sampling from nodes ###
@@ -37,24 +38,24 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
                                                  sim.result[tempo,
                                                             paste(state.var, x[1],
                                                                   sep ='')]),
-                                             x[2], replace = F)})
+                                             x[2], replace = F)
+                           sampled <- infl.var[sampled]})
         if (is.matrix(sampled) == T)
           sampled <- as.list(data.frame(sampled, stringsAsFactors = F))
         names(sampled) <- emigrants[,1]
         
-        # ----------- Randomly distributing individuals -------------
+        # -----------  Randomly distributing influence  -------------
         # connected.nodes is a data frame with the connected nodes in the time tempo
         connected.nodes <-
           stats::aggregate(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
-                            c(from,arc)][, arc],
-                    by = list(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
-                                      c(from,arc)][, from],
-                              network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
-                                      c(to,arc)][, to]),
-                    FUN = sum)
+                                   c(from,arc)][, arc],
+                           by = list(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
+                                             c(from,arc)][, from],
+                                     network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
+                                             c(to,arc)][, to]),
+                           FUN = sum)
         colnames(connected.nodes) <- c(from, to, arc)
-        connected.nodes[, state.var] <- 0
-        
+        connected.nodes[, infl.var] <- 0
         
         # distribution of individuals
         for(donor.node in emigrants[, from]){
@@ -66,8 +67,8 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
             
             last <- last + connected.nodes[reciever.node, arc]          
             
-            connected.nodes[reciever.node, state.var] <- 
-              apply(as.matrix(state.var), 1,
+            connected.nodes[reciever.node, infl.var] <- 
+              apply(as.matrix(infl.var), 1,
                     function(x){
                       length(which(sampled[as.character(donor.node)][[1]][first:last] == x))})
             
@@ -76,20 +77,14 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
           }
         }
         
-        # balancing and # updating state variables
-        connected.emigrants <- stats::aggregate(connected.nodes[, state.var],
-                                                by = list(connected.nodes[, from]), sum)
-        connected.imigrants <- stats::aggregate(connected.nodes[, state.var],
+        # updating influence parms
+        connected.imigrants <- stats::aggregate(connected.nodes[, infl.var],
                                                 by = list(connected.nodes[, to]), sum)
         
-        ssaObject$x0[as.vector(apply(as.matrix(state.var), 1, function(x)
-          paste(x, connected.emigrants[,'Group.1'], sep = '')))] <- as.vector(t(apply(connected.emigrants, 1, function(x){
-            ssaObject$x0[paste(state.var, x['Group.1'], sep = '')] - as.numeric(x[state.var])})))
-        
-        ssaObject$x0[as.vector(apply(as.matrix(state.var), 1, function(x)
-          paste(x, connected.imigrants[,'Group.1'], sep = '')))] <- as.vector(t(apply(connected.imigrants, 1, function(x){
-            ssaObject$x0[paste(state.var, x['Group.1'], sep = '')] + as.numeric(x[state.var])})))
-        
+        ssaObject$parms[as.vector(apply(as.matrix(infl.var), 1, function(x)
+          paste(x, connected.imigrants[,'Group.1'], sep = '')))] <- 
+            as.vector(t(apply(connected.imigrants, 1, function(x){as.numeric(x[infl.var])})))
+
         # checking whether will be another trade
         out.sim <- GillespieSSA::ssa(x0 = ssaObject$x0, a = ssaObject$propFunction, nu = ssaObject$sCMatrix,
                                      parms = ssaObject$parms, tf = ssaObject$time.diff[tempo],
@@ -115,8 +110,9 @@ simHM.customMigr <- function(x, network, sim.number, num.cores, fill.time){
     cl <- parallel::makeCluster(num.cores, type = "PSOCK")
     doParallel::registerDoParallel(cl)
     sims <- NULL
+
     sim.result <- foreach(sims = 1:sim.number, .verbose=FALSE, .inorder=FALSE,
-                          .packages = 'GillespieSSA') %dopar% (parallelCustomMigr())
+                          .packages = 'GillespieSSA') %dopar% (parallelCustomInfl())
     
     parallel::stopCluster(cl)
     

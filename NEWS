@@ -1,3 +1,47 @@
+hybridModels 0.2.15
+=================
+
+* adding few short comments
+
+* adding date option in summary method
+
+* updating summary documentation
+
+* updating description field
+
+hybridModels 0.2.14
+=================
+
+* findContactChain: it retrieves chains without selected.node.
+
+* networkSample: removing unnecessary data.
+
+hybridModels 0.2.13
+=================
+
+* New class and methods to handle customizable models of influence link type.
+
+* new example with a influence link type.
+
+hybridModels 0.2.12
+=================
+
+* summary - bug fix.
+
+* roxygen2 warning fix.
+
+hybridModels 0.2.11
+=================
+
+* Documentations mistakes.
+
+* summary method.
+
+hybridModels 0.2.10
+=================
+
+* Identation and naming mistakes corrected.
+
 hybridModels 0.2.9
 =================
 
@@ -71,7 +115,7 @@ hybridModels 0.2.0
 
 * buildModelClass.customMigr: method to create an object of the class customMigr.
 
-* simHB.customMigr function: method to run custom models (migration link type).
+* simHM.customMigr function: method to run custom models (migration link type).
 
 * plot.HD function: new plot opstions.
 

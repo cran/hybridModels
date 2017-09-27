@@ -1,5 +1,5 @@
 #' @name plot
-#' @title Plot for SI without demographics model
+#' @title Summary plots for hybrid Models
 #' 
 #' @description  \code{plot.HM} is a method to plot hybrid models from this
 #'               package
@@ -7,7 +7,7 @@
 #' 
 #' @param x \code{HM} object
 #' 
-#' @param sim points to which simulation to plot.
+#' @param sim indicates which simulation to plot.
 #' 
 #' @param facet.scales should scales be fixed ("free_y", the default), free ("free"), or free
 #'        in one dimension ("free_x", "free_y"). See ggplot2 package for more
@@ -84,7 +84,7 @@ plot.HM <- function(x, sim = 1, plot.type = 'subpop', facet.scales = 'free_y', .
              ggplot2::theme(panel.border = ggplot2::element_rect(colour = "grey", fill = NA),
                             strip.background = ggplot2::element_rect(fill = NA, colour = "grey", size = 0.1),
                             strip.text = ggplot2::element_text(face = "bold", size = 12),
-                            panel.margin = grid::unit(0.6, "lines"),
+                            panel.spacing = grid::unit(0.6, "lines"),
                             plot.title = ggplot2::element_text(size = 14, face = "bold"),
                             axis.text = ggplot2::element_text(size = 10),
                             axis.title = ggplot2::element_text(size = 12, face = "bold")))
@@ -110,7 +110,7 @@ plot.HM <- function(x, sim = 1, plot.type = 'subpop', facet.scales = 'free_y', .
              ggplot2::theme(panel.border = ggplot2::element_rect(colour = "grey", fill = NA),
                             strip.background = ggplot2::element_rect(fill = NA, colour = "grey", size = 0.1),
                             strip.text = ggplot2::element_text(face = "bold", size = 12),
-                            panel.margin = grid::unit(0.6, "lines"),
+                            panel.spacing = grid::unit(0.6, "lines"),
                             plot.title = ggplot2::element_text(size = 14, face = "bold"),
                             axis.text = ggplot2::element_text(size = 10),
                             axis.title = ggplot2::element_text(size = 12, face = "bold")))
@@ -133,7 +133,7 @@ plot.HM <- function(x, sim = 1, plot.type = 'subpop', facet.scales = 'free_y', .
              ggplot2::theme(panel.border = ggplot2::element_rect(colour = "grey", fill = NA),
                             strip.background = ggplot2::element_rect(fill = NA, colour = "grey", size = 0.1),
                             strip.text = ggplot2::element_text(face = "bold", size = 12),
-                            panel.margin = grid::unit(0.6, "lines"),
+                            panel.spacing = grid::unit(0.6, "lines"),
                             plot.title = ggplot2::element_text(size = 14, face = "bold"),
                             axis.text = ggplot2::element_text(size = 10),
                             axis.title = ggplot2::element_text(size = 12, face = "bold")))

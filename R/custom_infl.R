@@ -1,12 +1,13 @@
-buildModelClass.customMigr <- function(x, var.names, init.cond, model.parms,
-                                       prop.func, state.var,
-                                       infl.var, state.change.matrix){
+buildModelClass.customInfl <- function(x, var.names, init.cond, model.parms,
+                                       prop.func, state.var, infl.var,
+                                       state.change.matrix){
   
   #### args creation ####
   node.ID <- sort(unique(c(x$network[, var.names$from],
                            x$network[, var.names$to])))
   number.nodes <- length(node.ID)
   number.statVar <- length(state.var)
+  number.inflVar <- length(infl.var)
   number.propFun <- length(prop.func)
   
   mov.dates <- sort(unique(x$network[, var.names$Time]), na.last = NA)
@@ -17,22 +18,31 @@ buildModelClass.customMigr <- function(x, var.names, init.cond, model.parms,
   #### building propensity functions and x0 ####
   propFunc <- character()
   x0 <- integer(number.nodes * number.statVar)
+  infl.parms <- integer(number.nodes * number.inflVar)
   state.var.replacements <- character(number.statVar)
+  infl.var.replacements <- character(number.inflVar)
   names(state.var.replacements) <- state.var
+  names(infl.var.replacements) <- infl.var
   j <- 1
+  k <- 1
   
-  # propensity functions for each node
+  # propensity functions and parameters (infl.var) for each node
   for(i in 1:number.nodes){
     state.var.replacements[1:number.statVar] <- paste(state.var, node.ID[i], sep = '')
+    infl.var.replacements[1:number.inflVar] <- paste(infl.var, node.ID[i], sep = '')
     propFunc <- c(propFunc,
-                  unlist(stringr::str_split(stringr::str_replace_all(stringr::str_c(prop.func,
-                                                                                    collapse = "---"),
-                                                                     state.var.replacements), "---")))
+                  unlist(stringr::str_split(
+                    stringr::str_replace_all(stringr::str_c(prop.func, collapse = "---"),
+                                             c(infl.var.replacements,
+                                               state.var.replacements)), "---")))
     
     names(x0)[j:(i * number.statVar)] <- state.var.replacements
+    names(infl.parms)[k:(i * number.inflVar)] <- infl.var.replacements
     j <- j + number.statVar
+    k <- k + number.inflVar
   }
   x0[names(init.cond)] <- init.cond
+  model.parms <- c(model.parms, infl.parms)
   
   #### building state-change matrix ####
   scMatrix <- matrix(integer(number.statVar * number.propFun),
@@ -62,10 +72,13 @@ buildModelClass.customMigr <- function(x, var.names, init.cond, model.parms,
   results[(length(mov.dates) + 1), var.names$Time] <- mov.dates[length(mov.dates)] + 1
   
   
-  return(structure(list(ssaObjet = list(propFunction = propFunc, x0 = x0, sCMatrix = scMatrix,
-                                        parms = model.parms, mov.dates = mov.dates,
-                                        time.diff = time.diff, number.nodes = number.nodes,
-                                        var.names = var.names, state.var = state.var,
-                                        ssa.method =  x$ssa.method, pop.correc = x$pop.correc),
-                        results = results), class = c('customMigr', 'HM')))
+  return(structure(list(ssaObjet = list(propFunction = propFunc, x0 = x0,
+                                        sCMatrix = scMatrix, parms = model.parms,
+                                        mov.dates = mov.dates, time.diff = time.diff,
+                                        number.nodes = number.nodes,
+                                        infl.var = infl.var, var.names = var.names,
+                                        state.var = state.var,
+                                        ssa.method =  x$ssa.method,
+                                        pop.correc = x$pop.correc),
+                        results = results), class = c('customInfl', 'HM')))
 }
