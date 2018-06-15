@@ -1,9 +1,9 @@
 #' @import foreach
 #' 
-simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
+simHM.customProbWeights <- function(x, network, sim.number, num.cores, fill.time){
   
   if (fill.time == F){
-    parallelCustomInfl <- function(){
+    parallelCustomMigr <- function(){
       
       # making it readable
       sim.result <- x$results
@@ -13,7 +13,7 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
       to <- x$ssaObjet$var.names$to
       Time <- x$ssaObjet$var.names$Time
       state.var <- x$ssaObjet$state.var
-      infl.var <- x$ssaObjet$infl.var
+      probWeights <- x$ssaObjet$probWeights
       
       # starting
       sim.result$sim <- sims
@@ -30,21 +30,21 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
                            FUN = sum)
         colnames(emigrants) <- c(from, arc)
         
+        
         ### sampling from nodes ###
         # vector with emigrants tagged by its state, e.g., S or I
         sampled <- apply(emigrants, 1,
                          function(x){
-                           sampled <- sample(rep(state.var,
-                                                 sim.result[tempo,
-                                                            paste(state.var, x[1],
-                                                                  sep ='')]),
-                                             x[2], replace = F)
-                           sampled <- infl.var[sampled]})
+                           num <- sim.result[tempo, paste(state.var, x[1], sep = '')]
+                           colnames(num) <- state.var
+                           probW <- lapply(probWeights, function(x) eval(parse(text=x), num))
+                           sampled <- sample(sample(rep(state.var, num), x[2], replace = F,
+                                             prob = rep(probW[state.var], num)))})
         if (is.matrix(sampled) == T)
           sampled <- as.list(data.frame(sampled, stringsAsFactors = F))
         names(sampled) <- emigrants[,1]
         
-        # -----------  Randomly distributing influence  -------------
+        # ----------- Randomly distributing individuals -------------
         # connected.nodes is a data frame with the connected nodes in the time tempo
         connected.nodes <-
           stats::aggregate(network[which(network[, Time] == ssaObject[['mov.dates']][tempo]),
@@ -55,7 +55,8 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
                                              c(to,arc)][, to]),
                            FUN = sum)
         colnames(connected.nodes) <- c(from, to, arc)
-        connected.nodes[, infl.var] <- 0
+        connected.nodes[, state.var] <- 0
+        
         
         # distribution of individuals
         for(donor.node in emigrants[, from]){
@@ -67,8 +68,8 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
             
             last <- last + connected.nodes[reciever.node, arc]          
             
-            connected.nodes[reciever.node, infl.var] <- 
-              apply(as.matrix(infl.var), 1,
+            connected.nodes[reciever.node, state.var] <- 
+              apply(as.matrix(state.var), 1,
                     function(x){
                       length(which(sampled[as.character(donor.node)][[1]][first:last] == x))})
             
@@ -77,14 +78,20 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
           }
         }
         
-        # updating influence parms
-        connected.imigrants <- stats::aggregate(connected.nodes[, infl.var],
+        # balancing and # updating state variables
+        connected.emigrants <- stats::aggregate(connected.nodes[, state.var],
+                                                by = list(connected.nodes[, from]), sum)
+        connected.imigrants <- stats::aggregate(connected.nodes[, state.var],
                                                 by = list(connected.nodes[, to]), sum)
         
-        ssaObject$parms[as.vector(apply(as.matrix(infl.var), 1, function(x)
-          paste(x, connected.imigrants[,'Group.1'], sep = '')))] <- 
-            as.vector(t(apply(connected.imigrants, 1, function(x){as.numeric(x[infl.var])})))
-
+        ssaObject$x0[as.vector(apply(as.matrix(state.var), 1, function(x)
+          paste(x, connected.emigrants[,'Group.1'], sep = '')))] <- as.vector(t(apply(connected.emigrants, 1, function(x){
+            ssaObject$x0[paste(state.var, x['Group.1'], sep = '')] - as.numeric(x[state.var])})))
+        
+        ssaObject$x0[as.vector(apply(as.matrix(state.var), 1, function(x)
+          paste(x, connected.imigrants[,'Group.1'], sep = '')))] <- as.vector(t(apply(connected.imigrants, 1, function(x){
+            ssaObject$x0[paste(state.var, x['Group.1'], sep = '')] + as.numeric(x[state.var])})))
+        
         # checking whether will be another trade
         out.sim <- GillespieSSA::ssa(x0 = ssaObject$x0, a = ssaObject$propFunction, nu = ssaObject$sCMatrix,
                                      parms = ssaObject$parms, tf = ssaObject$time.diff[tempo],
@@ -112,9 +119,8 @@ simHM.customInfl<- function(x, network, sim.number, num.cores, fill.time){
     cl <- parallel::makeCluster(num.cores, type = "PSOCK")
     doParallel::registerDoParallel(cl)
     sims <- NULL
-
     sim.result <- foreach(sims = 1:sim.number, .verbose=FALSE, .inorder=FALSE,
-                          .packages = 'GillespieSSA') %dopar% (parallelCustomInfl())
+                          .packages = 'GillespieSSA') %dopar% (parallelCustomMigr())
     
     parallel::stopCluster(cl)
     
